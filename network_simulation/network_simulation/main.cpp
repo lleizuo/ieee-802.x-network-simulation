@@ -7,13 +7,20 @@
 //
 
 #include <iostream>
+#include <typeinfo>
+#include <ctime>
+
+using namespace std;
 
 int main(int argc, const char * argv[]) {
-    // insert code here...
-    std::cout << "Hello, World!\n";
+    
+    
+    
+    
     return 0;
 }
 
 
 // stackoverflow.com/questions/997946/how-to-get-current-time-and-date-in-c
-// time recording
+// time with system lock (which will not be used)
+// do with counter
