@@ -10,6 +10,8 @@
 		76F9B925227404B9008E5BE7 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76F9B924227404B9008E5BE7 /* main.cpp */; };
 		76F9B94022757B39008E5BE7 /* Event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76F9B93F22757B39008E5BE7 /* Event.cpp */; };
 		76F9B94322765D93008E5BE7 /* GEL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76F9B94222765D93008E5BE7 /* GEL.cpp */; };
+		76F9B944227660C0008E5BE7 /* Event.h in Sources */ = {isa = PBXBuildFile; fileRef = 76F9B93E2275338C008E5BE7 /* Event.h */; };
+		76F9B945227660C0008E5BE7 /* GEL.h in Sources */ = {isa = PBXBuildFile; fileRef = 76F9B94122765D7D008E5BE7 /* GEL.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -128,6 +130,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				76F9B944227660C0008E5BE7 /* Event.h in Sources */,
+				76F9B945227660C0008E5BE7 /* GEL.h in Sources */,
 				76F9B94322765D93008E5BE7 /* GEL.cpp in Sources */,
 				76F9B94022757B39008E5BE7 /* Event.cpp in Sources */,
 				76F9B925227404B9008E5BE7 /* main.cpp in Sources */,

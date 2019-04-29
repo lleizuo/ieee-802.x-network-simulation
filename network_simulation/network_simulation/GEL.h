@@ -9,5 +9,14 @@
 #ifndef GEL_h
 #define GEL_h
 
+#include "Event.h"
+
+class GEL {
+    Event * head;
+    
+public:
+    void insert(int event_time, Event * new_event);
+};
+
 
 #endif /* GEL_h */

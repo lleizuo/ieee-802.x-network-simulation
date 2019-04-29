@@ -10,6 +10,9 @@
 #include <typeinfo>
 #include <ctime>
 
+#include "Event.h"
+#include "GEL.h"
+
 using namespace std;
 
 int main(int argc, const char * argv[]) {

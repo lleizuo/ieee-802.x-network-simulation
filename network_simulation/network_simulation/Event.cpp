@@ -6,4 +6,13 @@
 //  Copyright © 2019 ECS 152A. All rights reserved.
 //
 
-#include <stdio.h>
+
+#include "Event.h"
+
+Event::Event(int event_time, int event_type, Event * next, Event * prev) {
+    this->event_time = event_time;
+    this->event_type = event_type;
+    this->next = next;
+    this->prev = prev;
+}
+
