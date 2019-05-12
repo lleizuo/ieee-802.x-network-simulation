@@ -1,9 +1,12 @@
+import random
+import math
+
 class Event:
     def __init__(self, next = None, prev = None, time = None, type = None):
-        self.next = next # reference to next event in DLL
-        self.prev = prev # reference to previous event in DLL
+        self.next = next  # reference to next event in DLL
+        self.prev = prev  # reference to previous event in DLL
         self.time = time
-        self.type = type
+        self.type = type  # 1: arrival 2: departure
 
 
 class DLL:
@@ -44,7 +47,7 @@ class DLL:
             new_event.prev = temp
             new_event.next = None
 
-    def printList(self):
+    def print_list(self):
         if self.head is None:
             print("Empty!")
             return
@@ -55,9 +58,9 @@ class DLL:
             temp = temp.next
 
         print("Time:" + str(temp.time) + " Type:" + str(temp.type))
-        while temp is not None:
-            print("Time:" + str(temp.time) + " Type:" + str(temp.type))
-            temp = temp.prev
+        # while temp is not None:
+        #     print("Time:" + str(temp.time) + " Type:" + str(temp.type))
+        #     temp = temp.prev
 
 
 class Packet:
@@ -86,15 +89,36 @@ class Buffer:
             return False
 
 
+def nedt(rate):  # negative exponentially distributed time
+    u = random.uniform(0, 1)
+    return (-1 / rate) * math.log(1 - u);
+
+
 # 1. Initialize
 buffer_size = input("Please enter the buffer size:")
 arrival_rate = input("Please enter the arrival rate:")
 service_rate = input("Please enter the service rate:")
 
-length = 0  # number of packets in the queue
+
 time = 0  # current time
+busy_time = 0  # count of the time the server is busy
 packets_dropped = 0  # number of packets dropped
 GEL = DLL()
+buffer = Buffer(buffer_size)
+length = len(buffer.queue)  # number of packets in the queue
+
+GEL.insert(time + nedt(arrival_rate), 1)
+
+# 2. Loop
+for i in range(100000):
+    event = GEL.head
+    if event.type == 1:  # arrival
+        time = event.time
+
+    else:  # departure
+        print(1)
+    GEL.remove_first()
 
 
-GEL.printList()
+# 3. output statistics
+GEL.print_list()
