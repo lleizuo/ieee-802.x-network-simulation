@@ -127,9 +127,9 @@ for i in range(100000):
         else:
             if length - 1 < buffer_size:
                 buffer.insert(new_packet)
+                length += 1
             else:
                 packets_dropped += 1
-            length += 1
             # update statistics: TODO
     else:  # departure
         time = event.time
@@ -137,6 +137,8 @@ for i in range(100000):
         if length > 0:
             GEL.insert(time + buffer.queue[0].service_time, 2)
             buffer.remove()
+            length -= 1
 
 # 3. output statistics
 GEL.print_list()
+print("Lost packets : " + str(packets_dropped))
