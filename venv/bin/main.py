@@ -115,7 +115,7 @@ def nedt(rate):  # negative exponentially distributed time
 
 def pareto(rate):  # pareto distribution
     u = random.uniform(0, 1)
-    return 1 / pow(1 - u, 1 / float(rate))  # TODO: The correctness
+    return u / (1 - float(rate))  # TODO: The correctness, here alpha = 1
 
 
 # 1. Initialize
