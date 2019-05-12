@@ -16,9 +16,10 @@ class DLL:
     def remove_first(self):
         if self.head is not None:
             self.head = self.head.next
-            self.head.prev = None
+            if self.head is not None:
+                self.head.prev = None
 
-    def insert(self,new_time,new_type):
+    def insert(self, new_time, new_type):
         new_event = Event(time=new_time,type=new_type)
 
         # empty linked list
@@ -64,16 +65,16 @@ class DLL:
 
 
 class Packet:
-    def __init__(self,arrival_time):
-        self.arrival_time = arrival_time
+    def __init__(self, service_time):
+        self.service_time = service_time
 
 
 class Buffer:
-    def __init__(self,size):
+    def __init__(self, size):
         self.size = size
         self.queue = []
 
-    def insert(self,packet):
+    def insert(self, packet):
         self.queue.append(packet)
 
     def remove(self):
@@ -91,7 +92,7 @@ class Buffer:
 
 def nedt(rate):  # negative exponentially distributed time
     u = random.uniform(0, 1)
-    return (-1 / rate) * math.log(1 - u);
+    return (-1 / float(rate)) * math.log(1 - u);
 
 
 # 1. Initialize
@@ -111,14 +112,31 @@ GEL.insert(time + nedt(arrival_rate), 1)
 
 # 2. Loop
 for i in range(100000):
-    event = GEL.head
-    if event.type == 1:  # arrival
-        time = event.time
-
-    else:  # departure
-        print(1)
+    event = Event(time=GEL.head.time, type=GEL.head.type)  # make a copy then remove
     GEL.remove_first()
-
+    if event.type == 1:  # arrival
+        # set current time to be the event time
+        time = event.time
+        # schedule the next event
+        next_arrival_time = time + nedt(arrival_rate)
+        new_packet = Packet(nedt(service_rate))
+        GEL.insert(next_arrival_time, 1)  # create new arrival event and insert it into the event list
+        # process the arrival event
+        if length == 0:
+            GEL.insert(time + new_packet.service_time, 2)
+        else:
+            if length - 1 < buffer_size:
+                buffer.insert(new_packet)
+            else:
+                packets_dropped += 1
+            length += 1
+            # update statistics: TODO
+    else:  # departure
+        time = event.time
+        # update statistics: TODO
+        if length > 0:
+            GEL.insert(time + buffer.queue[0].service_time, 2)
+            buffer.remove()
 
 # 3. output statistics
 GEL.print_list()
