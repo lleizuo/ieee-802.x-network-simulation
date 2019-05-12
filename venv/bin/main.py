@@ -94,9 +94,28 @@ class Buffer:
             return False
 
 
+flag = input("Regular or extra credit? (r / e) : ")
+
+if flag == "e":
+    print("We go extra credit mode: Pareto distribution!")
+else:
+    if flag == "r":
+        print("We go regular mode: Negative exponential distribution!")
+    else:
+        print("I don't understand. I will go regular mode anyway.")
+        flag = "r"
+
+
 def nedt(rate):  # negative exponentially distributed time
     u = random.uniform(0, 1)
+    if flag == "e":
+        return pareto(rate)
     return (-1 / float(rate)) * math.log(1 - u);
+
+
+def pareto(rate):  # pareto distribution
+    u = random.uniform(0, 1)
+    return 1 / pow(1 - u, 1 / float(rate))  # TODO: The correctness
 
 
 # 1. Initialize
