@@ -119,9 +119,9 @@ def pareto(rate):  # pareto distribution
 
 
 # 1. Initialize
-buffer_size = input("Please enter the buffer size (type i for infinite buffer):")
-arrival_rate = input("Please enter the arrival rate:")
-service_rate = input("Please enter the service rate:")
+buffer_size = input("Please enter the buffer size (type i for infinite buffer) : ")
+arrival_rate = input("Please enter the arrival rate (lambda) : ")
+service_rate = input("Please enter the service rate (mu) : ")
 
 if buffer_size == "i":
     buffer_size = int(sys.maxsize)
@@ -181,8 +181,8 @@ if busy:
 print("---------- Experiment result ----------")
 print("Total time : " + str(time))
 print("Utilization : " + str(busy_time / time))
-print("Lost packets : " + str(packets_dropped))
 print("Mean queue length : " + str(queue_length_areas / time))
+print("Lost packets : " + str(packets_dropped))
 print("---------- End of the result ----------")
 
 
