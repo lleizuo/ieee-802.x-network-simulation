@@ -1,5 +1,6 @@
 import random
 import math
+import sys
 
 class Event:
     def __init__(self, next = None, prev = None, time = None, type = None):
@@ -99,17 +100,22 @@ def nedt(rate):  # negative exponentially distributed time
 
 
 # 1. Initialize
-buffer_size = input("Please enter the buffer size:")
+buffer_size = input("Please enter the buffer size (type i for infinite buffer):")
 arrival_rate = input("Please enter the arrival rate:")
 service_rate = input("Please enter the service rate:")
 
+if buffer_size == "i":
+    buffer_size = int(sys.maxsize)
 
 time = 0  # current time
 busy_time = 0  # count of the time the server is busy
 packets_dropped = 0  # number of packets dropped
 GEL = DLL()
 buffer = Buffer(buffer_size)
-length = len(buffer.queue)  # number of packets in the queue
+length = 0  # number of packets in the queue
+get_busy_time = 0  # record the start of one busy time
+busy = False  # record the current server state
+queue_length_areas = 0  # record the sum of the areas
 
 GEL.insert(time + nedt(arrival_rate), 1)
 
@@ -118,6 +124,7 @@ for i in range(100000):
     # GEL.print_list()
     event = Event(time=GEL.head.time, type=GEL.head.type)  # make a copy then remove
     GEL.remove_first()
+    queue_length_areas += (event.time - time) * length
     if event.type == 1:  # arrival
         # set current time to be the event time
         time = event.time
@@ -129,22 +136,34 @@ for i in range(100000):
         if length == 0:
             GEL.insert(time + new_packet.service_time, 2)
             length += 1
+            busy = True
+            get_busy_time = time
         else:
             if length - 1 < int(buffer_size):
                 buffer.insert(new_packet)
                 length += 1
             else:
                 packets_dropped += 1
-            # update statistics: TODO
     else:  # departure
         time = event.time
-        # update statistics: TODO
         length -= 1
         if length > 0:
             GEL.insert(time + buffer.queue[0].service_time, 2)
             buffer.remove()
+        else:
+            busy = False
+            busy_time += (time - get_busy_time)
+
+if busy:
+    busy_time += (time - get_busy_time)
 
 # 3. output statistics
-GEL.print_list()
+# GEL.print_list()
+print("---------- Experiment result ----------")
+print("Total time : " + str(time))
+print("Utilization : " + str(busy_time / time))
 print("Lost packets : " + str(packets_dropped))
+print("Mean queue length : " + str(queue_length_areas / time))
+print("---------- End of the result ----------")
+
 
