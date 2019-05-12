@@ -68,31 +68,33 @@ class Packet:
 class Buffer:
     def __init__(self,size):
         self.size = size
-        self.length = 0
         self.queue = []
 
     def insert(self,packet):
         self.queue.append(packet)
-        self.length += 1
 
     def remove(self):
         if len(self.queue) is 0:
             print("Nothing to remove in this buffer!")
         else:
             self.queue.pop(0)
-            self.length -= 1
 
     def need_drop(self):
-        if self.length == self.size:
+        if len(self.queue) == self.size:
             return True
         else:
             return False
 
 
 # 1. Initialize
+buffer_size = input("Please enter the buffer size:")
+arrival_rate = input("Please enter the arrival rate:")
+service_rate = input("Please enter the service rate:")
+
+length = 0  # number of packets in the queue
+time = 0  # current time
+packets_dropped = 0  # number of packets dropped
 GEL = DLL()
-
-
 
 
 GEL.printList()
