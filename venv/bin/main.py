@@ -13,6 +13,7 @@ class DLL:
     def remove_first(self):
         if self.head is not None:
             self.head = self.head.next
+            self.head.prev = None
 
     def insert(self,new_time,new_type):
         new_event = Event(time=new_time,type=new_type)
@@ -44,25 +45,54 @@ class DLL:
             new_event.next = None
 
     def printList(self):
+        if self.head is None:
+            print("Empty!")
+            return
+
         temp = self.head
-        while temp is not None:
+        while temp is not None and temp.next is not None:
             print("Time:"+str(temp.time)+" Type:"+str(temp.type))
             temp = temp.next
 
+        print("Time:" + str(temp.time) + " Type:" + str(temp.type))
+        while temp is not None:
+            print("Time:" + str(temp.time) + " Type:" + str(temp.type))
+            temp = temp.prev
 
-llist = DLL()
-llist.insert(3,1)
-llist.insert(2,5)
-llist.insert(3,1)
-llist.insert(339,7)
-llist.insert(339,7)
-llist.insert(2,5)
-llist.insert(2,5)
-llist.insert(339,7)
-llist.printList()
 
-llist.remove_first()
-llist.remove_first()
-llist.remove_first()
-llist.remove_first()
-llist.printList()
+class Packet:
+    def __init__(self,arrival_time):
+        self.arrival_time = arrival_time
+
+
+class Buffer:
+    def __init__(self,size):
+        self.size = size
+        self.length = 0
+        self.queue = []
+
+    def insert(self,packet):
+        self.queue.append(packet)
+        self.length += 1
+
+    def remove(self):
+        if len(self.queue) is 0:
+            print("Nothing to remove in this buffer!")
+        else:
+            self.queue.pop(0)
+            self.length -= 1
+
+    def need_drop(self):
+        if self.length == self.size:
+            return True
+        else:
+            return False
+
+
+# 1. Initialize
+GEL = DLL()
+
+
+
+
+GEL.printList()
