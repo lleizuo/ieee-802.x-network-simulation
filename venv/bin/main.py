@@ -128,7 +128,6 @@ for i in range(100000):
         # process the arrival event
         if length == 0:
             GEL.insert(time + new_packet.service_time, 2)
-            buffer.insert(new_packet)
             length += 1
         else:
             if length - 1 < int(buffer_size):
@@ -140,10 +139,10 @@ for i in range(100000):
     else:  # departure
         time = event.time
         # update statistics: TODO
+        length -= 1
         if length > 0:
             GEL.insert(time + buffer.queue[0].service_time, 2)
             buffer.remove()
-            length -= 1
 
 # 3. output statistics
 GEL.print_list()
