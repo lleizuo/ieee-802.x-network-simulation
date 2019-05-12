@@ -53,6 +53,7 @@ class DLL:
             print("Empty!")
             return
 
+        print("-----start-----")
         temp = self.head
         while temp is not None and temp.next is not None:
             print("Time:"+str(temp.time)+" Type:"+str(temp.type))
@@ -62,6 +63,8 @@ class DLL:
         # while temp is not None:
         #     print("Time:" + str(temp.time) + " Type:" + str(temp.type))
         #     temp = temp.prev
+
+        print("-----end-----")
 
 
 class Packet:
@@ -112,6 +115,7 @@ GEL.insert(time + nedt(arrival_rate), 1)
 
 # 2. Loop
 for i in range(100000):
+    # GEL.print_list()
     event = Event(time=GEL.head.time, type=GEL.head.type)  # make a copy then remove
     GEL.remove_first()
     if event.type == 1:  # arrival
@@ -124,8 +128,10 @@ for i in range(100000):
         # process the arrival event
         if length == 0:
             GEL.insert(time + new_packet.service_time, 2)
+            buffer.insert(new_packet)
+            length += 1
         else:
-            if length - 1 < buffer_size:
+            if length - 1 < int(buffer_size):
                 buffer.insert(new_packet)
                 length += 1
             else:
@@ -142,3 +148,4 @@ for i in range(100000):
 # 3. output statistics
 GEL.print_list()
 print("Lost packets : " + str(packets_dropped))
+
