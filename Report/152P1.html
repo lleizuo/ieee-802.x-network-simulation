@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+        <title>Project 1 Report</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        <link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        <script src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+    </head>
+    <body>
+        <h1 id="project-1-report">Project 1 Report</h1>
+<p><strong>Team Members</strong>: Lei Zuo,
+Josue Aleman,
+Sattar Ehtesham</p>
+<h2 id="introduction"><strong>Introduction</strong></h2>
+<p>In this project we wanted to simulate the behavior of the transmission of packets. We specifically wanted to measure the utilization (how often the server was busy), the mean queue length and how many packets were dropped due to buffer overflow.</p>
+<p><strong>Language used</strong>: For this project we decided to use <code>Python</code> as our programming language. The reason we chose Python is because of its versatility and there was less overhead in implementing some of the data structures required. For our plotting, we decided to use the <code>Excel</code>  because of its intuitiveness and customizability that was needed to plot.</p>
+<h3 id="data-structures-implemented"><strong>Data Structures Implemented</strong>:</h3>
+<ol>
+<li><code>Event</code> class which holds the previous, next, time and type. This is the smallest unit used in the Doubly linked list. When instantiated, it allows us to easily keep track of every event and perform the operations required in the Global Event List (GEL).</li>
+<li>Doubly Linked List (<code>DLL</code>) is the container type that will simulate the Global Event List, allowing for insertion in the middle of the list, and the other basic operations required such as removing the first element of the list.</li>
+<li><code>Packet</code> class is the smallest unit used in the Buffer container which holds the service time.</li>
+<li><code>Buffer</code> class is a queue container that stores non-processed packets. It has basic operations such as insert and remove in a FIFO order.</li>
+</ol>
+<h3 id="variables-used"><strong>Variables used</strong>:</h3>
+<ol>
+<li><code>flag</code>: it records if the user wants to simulate the negative exponential distribution (regular mode) or the Pareto distribution (extra credit mode)</li>
+<li><code>buffer_size</code>: user defined, determines the size of the buffer from 1-infinity, user must use ‘i’ for infinity</li>
+<li><code>arrival_rate</code>: user defined, this is <strong>λ</strong>(inter-arrival rate)</li>
+<li><code>service_rate</code>: user defined, this is <strong>μ</strong> (transmission rate)</li>
+<li><code>time</code>: variable that holds the current time</li>
+<li><code>busy_time</code>: keeps a running total of the times the server is busy</li>
+<li><code>packets_dropped</code>: keeps a count of the number of packets dropped</li>
+<li><code>GEL</code>: is an instance of the doubly linked list (<code>DLL</code>)</li>
+<li><code>buffer</code>: instance of the Buffer class</li>
+<li><code>length</code>: number of packets currently in the queue</li>
+<li><code>get_busy_time</code>: keeps a record of the last time the server changed from idle to busy</li>
+<li><code>busy</code>: boolean that determines if server is idle or busy</li>
+<li><code>queue_length_areas</code>: keeps the sum of the area under the curve for the time vs queuelength graph</li>
+</ol>
+<h3 id="functions-used"><strong>Functions used</strong>:</h3>
+<ol>
+<li>
+<p><code>nedt</code>:
+params:  rate- the arrival rate or transmission rate
+Generates the negative exponential distribution time based on the rate (<strong>λ</strong> or <strong>μ</strong>) passed to it.</p>
+</li>
+<li>
+<p><code>pareto</code>:
+params: rate- arrival rate or transmission rate
+Generates the Pareto distribution time based on the rate (<strong>λ</strong> or <strong>μ</strong>) passed to it.</p>
+</li>
+</ol>
+<h2 id="implementation"><strong>Implementation</strong></h2>
+<p>We are following the logic provided in section <em>3.2</em> and <em>3.3</em> and <em>3.4</em> of the project guidelines.<br>
+<strong>Collecting Statistics</strong>:</p>
+<ul>
+<li>For <em>utilization</em> we used the variable called <code>get_busy_time</code> which keeps a record of the last time the server changed from idle to busy, and when the server changed from <code>busy== True</code> to <code>busy== False</code> we add the difference between <code>time</code> and <code>get_busy_time</code> to <code>busy_time</code>. Once the simulation terminates, we divide <code>busy_time</code> by <code>time</code> to get the mean server utilization.</li>
+<li>For <em>mean queue-length</em> we used <code>queue_length_areas</code> to keeps the sum of the area under the curve for the time vs queuelength graph. The way it does this is by adding the product of <code>event.time</code>  and <code>length -1</code> to <code>queue_length_areas</code>. The reason we use <code>length-1</code> is because the <code>length</code> already contains the transmitting packet. Once simulation ends, we find <em>mean queue-length</em> by dividing <code>queue_length_areas</code> by <code>time</code>.</li>
+<li>To find the <em>number of packets dropped</em> we check the <code>length -1</code>  with the <code>buffer_size</code> and if <code>buffer_size</code> is equal or smaller, we increment <code>packets_dropped</code> by one.</li>
+</ul>
+<h2 id="running-the-script"><strong>Running the script</strong>:</h2>
+<p>In terminal type:</p>
+<pre><code>python p1.py
+</code></pre>
+<p>This will run the script and will show a prompt (see <code>flag</code> variable for details on regular or extra credit):</p>
+<pre><code>$ Regular or extra credit? (r/e): _
+</code></pre>
+<p>If <strong><code>&quot;r&quot;</code></strong> is selected then the next prompt will ask for the buffer size (see <code>buffer_size</code> variable for details on input):</p>
+<pre><code>$ Please enter the buffer size (type i for infinite buffer) : _
+</code></pre>
+<p>Once a buffer size is selected, other than <strong><code>&quot;i&quot;</code></strong> the following prompt will ask for the arrival rate (<strong>λ</strong>):</p>
+<pre><code>$ Please enter the arrival rate (lambda) : _
+</code></pre>
+<p>Once arrival rate is determined, the following prompt will ask for the service rate (<strong>μ</strong>):</p>
+<pre><code>$ Please enter the service rate (mu) : _
+</code></pre>
+<p>After entering the service rate and pressing <code>RETURN</code> the script will simulate the transmissions and return a summary of the results.</p>
+<p>Example run:</p>
+<pre><code>$ Regular or extra credit? (r/e): r
+$ Please enter the buffer size (type i for infinite buffer) : 20
+$ Please enter the arrival rate (lambda) : 0.5
+$ Please enter the service rate (mu) : 0.5
+---------- Experiment result ----------
+Total time : 101986.60794659385
+Utilization : 0.9519069508419812
+Mean queue length : 10.301933970030367
+Lost packets : 2260
+---------- End of the result ----------
+</code></pre>
+<h2 id="experiment-results"><strong>Experiment Results</strong>:</h2>
+<p><em>Note</em>: We included the  λ values of 0.3 and 0.7 in our data to more accurately show the function curve.</p>
+<ol>
+<li>
+<p>a. With a queue of infinite size below is the plot of the <strong>queue-length</strong> with various <strong>λ's</strong>.
+<img src="file:////Users/josuealemansanchez/Desktop/UCD/ECS 152/P1/network_project_1/Report/infqueue.png" alt="Infinite Queue vs Queue Length">
+b. With a queue of infinite size, below is the plot of the <strong>utilization</strong> with various <strong>λ's</strong>.
+<img src="file:////Users/josuealemansanchez/Desktop/UCD/ECS 152/P1/network_project_1/Report/infuntilization.png" alt="Infinite Queue vs Utilization"></p>
+</li>
+<li>
+<p>a. <strong>Mean queue-length equation</strong>:<br>
+<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mover accent="true"><mi>Q</mi><mo stretchy="true">‾</mo></mover><mo>=</mo><mfrac><mrow><mo>(</mo><mfrac><mi>λ</mi><mi>μ</mi></mfrac><msup><mo>)</mo><mn>2</mn></msup></mrow><mrow><mn>1</mn><mo>−</mo><mfrac><mi>λ</mi><mi>μ</mi></mfrac></mrow></mfrac></mrow><annotation encoding="application/x-tex">\overline{Q} = \frac{(\frac{\lambda}{\mu})^2}{1 - \frac{\lambda}{\mu}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0777700000000001em;vertical-align:-0.19444em;"></span><span class="mord overline"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8833300000000001em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">Q</span></span></span><span style="top:-3.80333em;"><span class="pstrut" style="height:3em;"></span><span class="overline-line" style="border-bottom-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.19444em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.0359799999999995em;vertical-align:-0.7640399999999998em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.2719399999999998em;"><span style="top:-2.57398em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mbin mtight">−</span><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size3 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8800285714285714em;"><span style="top:-2.656em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">μ</span></span></span></span><span style="top:-3.2255000000000003em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.384em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">λ</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.48288571428571425em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size3 size6"></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.64802em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size3 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8800285714285714em;"><span style="top:-2.656em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">μ</span></span></span></span><span style="top:-3.2255000000000003em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.384em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">λ</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.48288571428571425em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size3 size6"></span></span><span class="mclose mtight"><span class="mclose mtight">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913142857142857em;"><span style="top:-2.931em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7640399999999998em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></p>
+<p>μ = 1, λ = 0.1, queue-length = 0.0111 <br>
+μ = 1, λ = 0.2, queue-length = 0.05 <br>
+μ = 1, λ = 0.4, queue-length = 0.266666 <br>
+μ = 1, λ = 0.5, queue-length = 0.5 <br>
+μ = 1, λ = 0.6, queue-length = 0.9 <br>
+μ = 1, λ = 0.8, queue-length = 3.2 <br>
+μ = 1, λ = 0.9, queue-length = 8.1 <br></p>
+</li>
+</ol>
+<h3 id="mean-queue-length-table">Mean Queue Length Table</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Lambda</th>
+<th style="text-align:right">Expected</th>
+<th style="text-align:right">Actual</th>
+<th style="text-align:center">Error (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">0.1</td>
+<td style="text-align:right">0.0111</td>
+<td style="text-align:right">0.0109845833734809</td>
+<td style="text-align:center">1.14%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.2</td>
+<td style="text-align:right">0.05</td>
+<td style="text-align:right">0.0109845833734809</td>
+<td style="text-align:center">1.02%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.4</td>
+<td style="text-align:right">.26666</td>
+<td style="text-align:right">0.2634336795404540</td>
+<td style="text-align:center">1.23%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.5</td>
+<td style="text-align:right">0.5</td>
+<td style="text-align:right">0.4839669873574530</td>
+<td style="text-align:center">3.31%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.6</td>
+<td style="text-align:right">0.9</td>
+<td style="text-align:right">0.8443572195573390</td>
+<td style="text-align:center">6.59%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.8</td>
+<td style="text-align:right">3.2</td>
+<td style="text-align:right">3.5538717493404400</td>
+<td style="text-align:center">9.96%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.9</td>
+<td style="text-align:right">8.1</td>
+<td style="text-align:right">8.7235769994442800</td>
+<td style="text-align:center">7.15%</td>
+</tr>
+</tbody>
+</table>
+<p>b. <strong>Server Utilization equation</strong>:</p>
+<p><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>U</mi><mi>s</mi></msub><mo>=</mo><mfrac><mi>λ</mi><mi>μ</mi></mfrac></mrow><annotation encoding="application/x-tex">U_s= \frac{\lambda}{\mu}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">U</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.10903em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">s</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.3612159999999998em;vertical-align:-0.481108em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8801079999999999em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">μ</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">λ</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.481108em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></p>
+<p>For this equation we set μ = 1, therefore: <br>
+utilization = λ = 0.1 <br>
+utilization = λ = 0.2 <br>
+utilization = λ = 0.4 <br>
+utilization = λ = 0.5 <br>
+utilization = λ = 0.6 <br>
+utilization = λ = 0.8 <br>
+utilization = λ = 0.9 <br></p>
+<h3 id="server-utilization-table">Server Utilization Table</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Expected</th>
+<th style="text-align:right">Actual</th>
+<th style="text-align:center">Error (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">0.1</td>
+<td style="text-align:right">0.1009122993030990</td>
+<td style="text-align:center">0.90%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.2</td>
+<td style="text-align:right">0.1999099977678510</td>
+<td style="text-align:center">0.05%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.4</td>
+<td style="text-align:right">0.4007951742055140</td>
+<td style="text-align:center">0.20%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.5</td>
+<td style="text-align:right">0.5004444350711300</td>
+<td style="text-align:center">0.09%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.6</td>
+<td style="text-align:right">0.5925647119467470</td>
+<td style="text-align:center">1.25%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.8</td>
+<td style="text-align:right">0.7969599960949250</td>
+<td style="text-align:center">0.38%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.8</td>
+<td style="text-align:right">0.9039948553590710</td>
+<td style="text-align:center">0.44%</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>a. Plot of buffer with size 1
+<img src="file:////Users/josuealemansanchez/Desktop/UCD/ECS 152/P1/network_project_1/Report/buff1.png" alt="Buffer Size 1">
+b. Plot with buffer size 20
+<img src="file:////Users/josuealemansanchez/Desktop/UCD/ECS 152/P1/network_project_1/Report/buff20.png" alt="Buffer Size 20">
+c. Plot with buffer size 30
+<img src="file:////Users/josuealemansanchez/Desktop/UCD/ECS 152/P1/network_project_1/Report/buff30.png" alt="Buffer Size 30"></li>
+</ol>
+<h2 id="conclusion"><strong>Conclusion</strong></h2>
+<p>Our simulation of the infinite queue, confirms the mean queue-length equation and the server utilization queation. We also simulated various buffer sizes, indicating that the smaller the buffer, the higher the number of packets dropped. With a buffer size of 1 and a fixed service rate of 1, we see that the packets dropped is linearly proportional to lambda. For buffer size of 20 and 30 we see that after a certain lambda threshold, the number of dropped packets increased significantly.</p>
+<hr>
+<h2 id="extra-credit-pareto-distribution-experiment">Extra Credit Pareto Distribution Experiment</h2>
+<p><strong>Sources</strong>: <a href="https://www.usenix.org/legacy/publications/library/proceedings/usenix03/tech/full_papers/roussopoulos/roussopoulos_html/node19.html">Pareto Query Arrivals</a></p>
+<h3 id="approach">Approach</h3>
+<p>The specific distribution used is the Lomax distribution which is a special case of the Pareto distribution. For this distribution we set λ in each run so that <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mfrac><mrow><mi>α</mi><mo>−</mo><mn>1</mn></mrow><mi>α</mi></mfrac></mrow><annotation encoding="application/x-tex">\frac{\alpha - 1}{\alpha}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.190108em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.845108em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.0037em;">α</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.0037em;">α</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span> is equal to the rate, where α is the shape parameter. We let x be a random variable that can be generated with:</p>
+<p><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>x</mi><mo>=</mo><mi>λ</mi><mo>(</mo><mo>(</mo><mn>1</mn><mo>−</mo><mi>u</mi><msup><mo>)</mo><mrow><mo>−</mo><mfrac><mn>1</mn><mi>α</mi></mfrac></mrow></msup><mo>−</mo><mn>1</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">x = \lambda((1- u)^{-\frac{1}{\alpha}} - 1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">x</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">λ</span><span class="mopen">(</span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.20402em;vertical-align:-0.25em;"></span><span class="mord mathdefault">u</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9540200000000001em;"><span style="top:-3.363em;margin-right:0.05em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size3 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8443142857142858em;"><span style="top:-2.656em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.0037em;">α</span></span></span></span><span style="top:-3.2255000000000003em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.384em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.344em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size3 size6"></span></span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span></p>
+<p>Where <em>u</em> is the uniformly distributed random variable between 0 and 1. <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.0037em;">α</span></span></span></span> is a given shape parameter. In this case we set <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>α</mi><mo>=</mo><mn>100</mn></mrow><annotation encoding="application/x-tex">\alpha = 100</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.0037em;">α</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">0</span><span class="mord">0</span></span></span></span>  that way the <em>Variance</em> is limited to a certain bound for our purpose.</p>
+<h2 id="experiment-results-1">Experiment Results</h2>
+<ol>
+<li>Below is the plot of a simulation with a queue of infinite size and <strong>queue-length</strong> with the various <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>λ</mi></mrow><annotation encoding="application/x-tex">\lambda</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">λ</span></span></span></span> rates:
+<img src="file:////Users/josuealemansanchez/Desktop/UCD/ECS 152/P1/network_project_1/Report/ParetoQueue.png" alt="Buffer Size 1"></li>
+</ol>
+<h3 id="mean-queue-length-table-1"><strong>Mean Queue Length Table</strong></h3>
+<p><em>Note</em>: Our expected values for mean queue-length are the same as the ones we calculated in the main project.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Lambda</th>
+<th style="text-align:right">Expected</th>
+<th style="text-align:right">Actual</th>
+<th style="text-align:center">Error (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">0.1</td>
+<td style="text-align:right">0.0111</td>
+<td style="text-align:right">0.0117199079005881</td>
+<td style="text-align:center">5.20%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.2</td>
+<td style="text-align:right">0.05</td>
+<td style="text-align:right">0.0505226839896073</td>
+<td style="text-align:center">1.03%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.4</td>
+<td style="text-align:right">.26666</td>
+<td style="text-align:right">0.2943780742956280</td>
+<td style="text-align:center">9.41%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.5</td>
+<td style="text-align:right">0.5</td>
+<td style="text-align:right">0.5210376844579920</td>
+<td style="text-align:center">4.04%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.6</td>
+<td style="text-align:right">0.9</td>
+<td style="text-align:right">0.8934515683121440</td>
+<td style="text-align:center">0.73%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.8</td>
+<td style="text-align:right">3.2</td>
+<td style="text-align:right">3.5638490613186100</td>
+<td style="text-align:center">10.21%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.9</td>
+<td style="text-align:right">8.1</td>
+<td style="text-align:right">8.2548637811034100</td>
+<td style="text-align:center">1.88%</td>
+</tr>
+</tbody>
+</table>
+<ol start="2">
+<li>Below is the plot of the simulation and the <strong>utilization</strong> with the various <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>λ</mi></mrow><annotation encoding="application/x-tex">\lambda</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">λ</span></span></span></span> rates:
+<img src="file:////Users/josuealemansanchez/Desktop/UCD/ECS 152/P1/network_project_1/Report/ParetoUtilization.png" alt="Buffer Size 1"></li>
+</ol>
+<h3 id="server-utilization-table-1"><strong>Server Utilization Table</strong></h3>
+<p><em>Note</em>: Our expected values for server utilization are the same as the ones we calculated in the main project.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Expected</th>
+<th style="text-align:right">Actual</th>
+<th style="text-align:center">Error (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">0.1</td>
+<td style="text-align:right">0.1016602780255350</td>
+<td style="text-align:center">1.63%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.2</td>
+<td style="text-align:right">0.1987010507854700</td>
+<td style="text-align:center">0.65%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.4</td>
+<td style="text-align:right">0.4033433689881730</td>
+<td style="text-align:center">0.83%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.5</td>
+<td style="text-align:right">0.5024734178690240</td>
+<td style="text-align:center">0.49%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.6</td>
+<td style="text-align:right">0.6009566601379660</td>
+<td style="text-align:center">0.16%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.8</td>
+<td style="text-align:right">0.8064722192627300</td>
+<td style="text-align:center">0.80%</td>
+</tr>
+<tr>
+<td style="text-align:center">0.8</td>
+<td style="text-align:right">0.8995891920143240</td>
+<td style="text-align:center">0.05%</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="plots-with-buffer-sizes-1-20-30">Plots With Buffer Sizes: 1, 20, 30</h3>
+<p>Buffer Size: 1
+<img src="file:////Users/josuealemansanchez/Desktop/UCD/ECS 152/P1/network_project_1/Report/ParetoBuff1.png" alt="Buffer Size 1"></p>
+<p>Buffer Size: 20
+<img src="file:////Users/josuealemansanchez/Desktop/UCD/ECS 152/P1/network_project_1/Report/ParetoBuff20.png" alt="Buffer Size 1"></p>
+<p>Buffer Size: 30
+<img src="file:////Users/josuealemansanchez/Desktop/UCD/ECS 152/P1/network_project_1/Report/ParetoBuff30.png" alt="Buffer Size 1"></p>
+<h2 id="conclusion-1">Conclusion</h2>
+<p>After evalutating the Pareto distribution, the behavior of the queue system behaves very similar to the negative exponential queue system in our main project. This happens when <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>α</mi><mo>=</mo><mn>100</mn></mrow><annotation encoding="application/x-tex">\alpha = 100</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.0037em;">α</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">0</span><span class="mord">0</span></span></span></span> and we noticed that when <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>1</mn><mo>&lt;</mo><mi>α</mi><mo>&lt;</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">1&lt;\alpha&lt;2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68354em;vertical-align:-0.0391em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathdefault" style="margin-right:0.0037em;">α</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span></span></span></span> the variance of the mean queue-length is unbounded, giving very unstable results. The larger <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.0037em;">α</span></span></span></span> the more the result converges to the mean queue-length result we got in the negative exponential distribution. As for the utilization, we also see a linear correlation between <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>λ</mi></mrow><annotation encoding="application/x-tex">\lambda</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">λ</span></span></span></span> and the utilization for all <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>α</mi><mo>&gt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\alpha &gt;1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathdefault" style="margin-right:0.0037em;">α</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>.</p>
+
+    </body>
+    </html>
