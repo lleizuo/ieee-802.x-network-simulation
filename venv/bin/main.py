@@ -111,12 +111,14 @@ def nedt(rate):  # negative exponentially distributed time
     u = random.uniform(0, 1)
     if flag == "e":
         return pareto(rate)
-    return (-1 / float(rate)) * math.log(1 - u);
+    return (-1 / float(rate)) * math.log(1 - u)
 
 
 def pareto(rate):  # pareto distribution
     u = random.uniform(0, 1)
-    return u / (1 - float(rate))  # TODO: The correctness, here alpha = 1
+    alpha = 100
+    my_lambda = (alpha - 1) / float(rate)
+    return my_lambda * (pow(1 - u, -1 / alpha) - 1)
 
 
 # 1. Initialize
