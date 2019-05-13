@@ -2,6 +2,7 @@
 ECS 152 project 1.
 
 **Team members**:
+
 |Name           | Student ID|
 |--------------|:---------:|
 |Josue Aleman   | 914982971 |
