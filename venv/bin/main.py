@@ -2,8 +2,9 @@ import random
 import math
 import sys
 
+
 class Event:
-    def __init__(self, next = None, prev = None, time = None, type = None):
+    def __init__(self, next=None, prev=None, time=None, type=None):
         self.next = next  # reference to next event in DLL
         self.prev = prev  # reference to previous event in DLL
         self.time = time
@@ -143,7 +144,7 @@ for i in range(100000):
     # GEL.print_list()
     event = Event(time=GEL.head.time, type=GEL.head.type)  # make a copy then remove
     GEL.remove_first()
-    queue_length_areas += (event.time - time) * length
+    queue_length_areas += (event.time - time) * max(0, length - 1)  # length
     if event.type == 1:  # arrival
         # set current time to be the event time
         time = event.time
